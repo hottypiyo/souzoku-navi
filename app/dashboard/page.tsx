@@ -67,6 +67,21 @@ export default async function DashboardPage({
   );
 
   const isPreparation = caseData.mode === "preparation";
+  const userRole = caseData.user_role ?? "child";
+  const deceasedName = caseData.deceased_name;
+
+  function getSubjectLabel(): string {
+    if (isPreparation) {
+      if (userRole === "self") return deceasedName ? `${deceasedName}さん（ご本人）` : "ご自身";
+      if (userRole === "spouse") return deceasedName ? `${deceasedName}さん（配偶者）` : "配偶者";
+      return deceasedName ? `${deceasedName}さん` : "親御さん";
+    }
+    if (userRole === "spouse") return deceasedName ? `${deceasedName}さん（配偶者）` : "配偶者";
+    if (userRole === "parent") return deceasedName ? `${deceasedName}さん` : "ご家族";
+    if (userRole === "sibling") return deceasedName ? `${deceasedName}さん（兄弟姉妹）` : "ご家族";
+    return deceasedName ? `${deceasedName}さん` : "ご家族";
+  }
+  const subjectLabel = getSubjectLabel();
   const FREE_DETAIL_LIMIT = 3;
   let freeDetailCount = 0;
 
@@ -82,7 +97,7 @@ export default async function DashboardPage({
             <div>
               <h1 className="text-base font-semibold text-slate-800">相続手続きナビ</h1>
               <p className="text-xs text-slate-500">
-                {caseData.deceased_name ? `${caseData.deceased_name} さんの` : ""}事前準備チェックリスト
+                {subjectLabel}の{userRole === "self" ? "終活" : "相続"}準備チェックリスト
               </p>
             </div>
             {!isPremium && (
@@ -97,7 +112,9 @@ export default async function DashboardPage({
               📋 「いざ」というときに困らないための準備リスト
             </h2>
             <p className="text-sm text-green-700">
-              親が元気なうちに確認・準備しておくことで、手続きの負担を大幅に減らせます。
+              {userRole === "self"
+                ? "ご自身の意思をまとめておくことで、残された家族の負担を大幅に減らせます。"
+                : "元気なうちに確認・準備しておくことで、手続きの負担を大幅に減らせます。"}
               完了したタスクにチェックを入れていきましょう。
             </p>
           </div>
@@ -138,7 +155,7 @@ export default async function DashboardPage({
               状況が変わったら
             </p>
             <p className="mb-4 text-sm text-slate-500">
-              親が亡くなった場合は、手続きリストに切り替えられます。
+              ご家族が亡くなった場合は、手続きリストを別途作成できます。
             </p>
             <a
               href="/onboarding"
@@ -173,9 +190,7 @@ export default async function DashboardPage({
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div>
             <h1 className="text-base font-semibold text-slate-800">相続手続きナビ</h1>
-            {caseData.deceased_name && (
-              <p className="text-xs text-slate-500">{caseData.deceased_name} さんの相続手続き</p>
-            )}
+            <p className="text-xs text-slate-500">{subjectLabel}の相続手続き</p>
           </div>
           {!isPremium && (
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>

@@ -6,43 +6,48 @@ import { createClient } from "@/lib/supabase/client";
 import type { WillType } from "@/lib/supabase/types";
 
 type Mode = "active" | "preparation";
+type UserRole = "child" | "spouse" | "parent" | "sibling" | "self" | "other";
 type MaybeBool = "yes" | "maybe" | "no";
 
 interface FormState {
   mode: Mode | null;
+  user_role: UserRole | null;
   deceased_name: string;
   death_date: string;
   has_real_estate: boolean | null;
   has_will: WillType | null;
-  // 家族構成（相続人数の推定に使う）
   has_spouse: boolean;
   has_children: boolean;
   has_parents_alive: boolean;
   has_siblings: boolean;
   debt_concern: boolean | null;
-  // 3択（yes / maybe / no）
   has_pension: MaybeBool;
   has_life_insurance: MaybeBool;
   has_securities: MaybeBool;
 }
 
-/** 家族構成から法定相続人数を概算する */
 function estimateHeirCount(f: FormState): number {
-  if (f.has_children) {
-    return (f.has_spouse ? 1 : 0) + 2; // 子は複数いる可能性があるので最低2として概算
-  }
-  if (f.has_parents_alive) {
-    return (f.has_spouse ? 1 : 0) + 1;
-  }
-  if (f.has_siblings) {
-    return (f.has_spouse ? 1 : 0) + 1;
-  }
+  if (f.has_children) return (f.has_spouse ? 1 : 0) + 2;
+  if (f.has_parents_alive) return (f.has_spouse ? 1 : 0) + 1;
+  if (f.has_siblings) return (f.has_spouse ? 1 : 0) + 1;
   return f.has_spouse ? 1 : 1;
 }
 
-/** "maybe" は trueとして扱う（保守的な判定） */
 function toBoolean(v: MaybeBool): boolean {
   return v === "yes" || v === "maybe";
+}
+
+/** 立場に応じたラベルを返す */
+function getRoleLabel(role: UserRole | null, mode: Mode | null): string {
+  if (mode === "preparation") {
+    if (role === "self") return "ご自身";
+    if (role === "spouse") return "配偶者";
+    return "親御さん";
+  }
+  if (role === "spouse") return "配偶者";
+  if (role === "parent") return "お子さん";
+  if (role === "sibling") return "ご兄弟";
+  return "亡くなった方";
 }
 
 export default function OnboardingPage() {
@@ -51,6 +56,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<FormState>({
     mode: null,
+    user_role: null,
     deceased_name: "",
     death_date: "",
     has_real_estate: null,
@@ -65,24 +71,26 @@ export default function OnboardingPage() {
     has_securities: "no",
   });
 
-  const totalSteps = form.mode === "preparation" ? 4 : 5;
+  // totalSteps: preparation=5, active=6（user_roleステップが追加されたため+1）
+  const totalSteps = form.mode === "preparation" ? 5 : 6;
 
   const canNext = () => {
     if (step === 0) return form.mode !== null;
-    if (step === 1) {
+    if (step === 1) return form.user_role !== null;
+    if (step === 2) {
       if (form.mode === "active") return form.death_date !== "";
       return true;
     }
-    if (step === 2) return form.has_real_estate !== null;
-    if (step === 3) return form.has_will !== null;
-    if (step === 4) return true; // 家族構成は任意選択（未選択=一人）
-    if (step === 5) return form.debt_concern !== null;
+    if (step === 3) return form.has_real_estate !== null;
+    if (step === 4) return form.has_will !== null;
+    if (step === 5) return true;
+    if (step === 6) return form.debt_concern !== null;
     return true;
   };
 
   const isFinalStep =
-    (form.mode === "preparation" && step === 4) ||
-    (form.mode === "active" && step === 5);
+    (form.mode === "preparation" && step === 5) ||
+    (form.mode === "active" && step === 6);
 
   async function handleSubmit() {
     setLoading(true);
@@ -90,14 +98,19 @@ export default function OnboardingPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/login"); return; }
 
+    // 配偶者ユーザーは has_spouse を強制 true
+    const effectiveHasSpouse = form.user_role === "spouse" ? true : form.has_spouse;
+    const effectiveForm = { ...form, has_spouse: effectiveHasSpouse };
+
     const { data, error } = await supabase.from("cases").insert({
       user_id: user.id,
       mode: form.mode ?? "active",
+      user_role: form.user_role ?? "child",
       deceased_name: form.deceased_name || null,
       death_date: form.death_date || null,
       has_real_estate: form.has_real_estate ?? false,
       has_will: form.has_will ?? "unknown",
-      heir_count: estimateHeirCount(form),
+      heir_count: estimateHeirCount(effectiveForm),
       debt_concern: form.debt_concern ?? false,
       has_pension: toBoolean(form.has_pension),
       has_life_insurance: toBoolean(form.has_life_insurance),
@@ -109,6 +122,7 @@ export default function OnboardingPage() {
   }
 
   const progressPercent = step === 0 ? 0 : Math.round((step / totalSteps) * 100);
+  const subjectLabel = getRoleLabel(form.user_role, form.mode);
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-12">
@@ -145,7 +159,7 @@ export default function OnboardingPage() {
                   className="w-full rounded-xl border-2 border-slate-200 px-5 py-5 text-left transition-all hover:border-blue-400 hover:bg-blue-50"
                 >
                   <div className="mb-1 text-2xl">😔</div>
-                  <div className="font-semibold text-slate-800">親が亡くなった・亡くなりそう</div>
+                  <div className="font-semibold text-slate-800">ご家族が亡くなった・亡くなりそう</div>
                   <div className="mt-1 text-sm text-slate-500">今すぐ必要な手続きを期限付きで整理します</div>
                 </button>
                 <button
@@ -160,13 +174,81 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 1: 死亡日 or 名前 */}
-          {step === 1 && form.mode === "active" && (
+          {/* Step 1: 立場の選択（NEW） */}
+          {step === 1 && (
+            <div>
+              <h2 className="mb-2 text-xl font-bold text-slate-800">
+                {form.mode === "active"
+                  ? "あなたはどのような立場ですか？"
+                  : "誰の相続について準備しますか？"}
+              </h2>
+              <p className="mb-6 text-sm text-slate-500">
+                {form.mode === "active"
+                  ? "亡くなった方との関係を選んでください。"
+                  : "当てはまるものを選んでください。"}
+              </p>
+              <div className="space-y-2">
+                {form.mode === "active" ? (
+                  <>
+                    {[
+                      { value: "child" as UserRole, emoji: "🧑", label: "子（息子・娘）", desc: "亡くなった方のお子さんとして手続きする" },
+                      { value: "spouse" as UserRole, emoji: "💑", label: "配偶者（夫・妻）", desc: "亡くなった方の配偶者として手続きする" },
+                      { value: "parent" as UserRole, emoji: "👴", label: "親（父・母）", desc: "亡くなった方の親として手続きする" },
+                      { value: "sibling" as UserRole, emoji: "👫", label: "兄弟・姉妹", desc: "亡くなった方のご兄弟として手続きする" },
+                      { value: "other" as UserRole, emoji: "👤", label: "その他", desc: "孫・甥姪・法定代理人など" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => { setForm({ ...form, user_role: opt.value }); setStep(2); }}
+                        className={`flex w-full items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition-all ${
+                          form.user_role === opt.value ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <span className="text-xl">{opt.emoji}</span>
+                        <div>
+                          <div className="font-medium text-slate-800">{opt.label}</div>
+                          <div className="text-xs text-slate-500">{opt.desc}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {[
+                      { value: "child" as UserRole, emoji: "🧑", label: "親の相続を準備する", desc: "親が元気なうちに、相続の準備をしたい" },
+                      { value: "self" as UserRole, emoji: "📝", label: "自分自身の相続を準備する", desc: "終活として、自分の相続について準備したい" },
+                      { value: "spouse" as UserRole, emoji: "💑", label: "配偶者の相続を準備する", desc: "夫・妻の相続について一緒に準備したい" },
+                      { value: "other" as UserRole, emoji: "👤", label: "その他の方の相続を準備する", desc: "祖父母・その他の方の相続準備" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => { setForm({ ...form, user_role: opt.value }); setStep(2); }}
+                        className={`flex w-full items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition-all ${
+                          form.user_role === opt.value ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <span className="text-xl">{opt.emoji}</span>
+                        <div>
+                          <div className="font-medium text-slate-800">{opt.label}</div>
+                          <div className="text-xs text-slate-500">{opt.desc}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: 死亡日 or 名前 */}
+          {step === 2 && form.mode === "active" && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">亡くなったのはいつですか？</h2>
               <p className="mb-6 text-sm text-slate-500">期限のカウントダウンを計算するために使います。</p>
               <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-slate-700">お名前（任意）</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  {subjectLabel}のお名前（任意）
+                </label>
                 <input
                   type="text"
                   placeholder="例：田中一郎"
@@ -190,10 +272,16 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 1 && form.mode === "preparation" && (
+          {step === 2 && form.mode === "preparation" && (
             <div>
-              <h2 className="mb-2 text-xl font-bold text-slate-800">親御さんのお名前（任意）</h2>
-              <p className="mb-6 text-sm text-slate-500">準備リストに表示する名前です。後から変更できます。</p>
+              <h2 className="mb-2 text-xl font-bold text-slate-800">
+                {form.user_role === "self" ? "あなたのお名前（任意）" : `${subjectLabel}のお名前（任意）`}
+              </h2>
+              <p className="mb-6 text-sm text-slate-500">
+                {form.user_role === "self"
+                  ? "準備リストに表示する名前です。"
+                  : "準備リストに表示する名前です。後から変更できます。"}
+              </p>
               <input
                 type="text"
                 placeholder="例：田中一郎"
@@ -205,11 +293,11 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 2: 不動産 */}
-          {step === 2 && (
+          {/* Step 3: 不動産 */}
+          {step === 3 && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
-                持ち家や土地はありますか？
+                {form.user_role === "self" ? "ご自身の" : `${subjectLabel}の`}持ち家や土地はありますか？
               </h2>
               <p className="mb-2 text-sm text-slate-500">
                 自宅・農地・収益物件なども含みます。
@@ -249,8 +337,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3: 遺言書 */}
-          {step === 3 && (
+          {/* Step 4: 遺言書 */}
+          {step === 4 && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
                 遺言書はありますか？
@@ -280,11 +368,11 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: 家族構成（相続人数を推定） */}
-          {step === 4 && (
+          {/* Step 5: 家族構成 + 資産 */}
+          {step === 5 && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
-                {form.mode === "preparation" ? "親御さんの" : "亡くなった方の"}ご家族を教えてください
+                {form.user_role === "self" ? "ご自身の" : `${subjectLabel}の`}ご家族を教えてください
               </h2>
               <p className="mb-2 text-sm text-slate-500">
                 当てはまるものをすべて選んでください。
@@ -292,27 +380,37 @@ export default function OnboardingPage() {
               <p className="mb-6 rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-500">
                 これをもとに必要な手続きを絞り込みます。わからなければ選ばなくても大丈夫です。
               </p>
+
+              {/* 配偶者ユーザーは「配偶者がいる」を自動 true として非表示 */}
+              {form.user_role === "spouse" && (
+                <div className="mb-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  配偶者（あなた）は相続人として含まれています。
+                </div>
+              )}
+
               <div className="space-y-2">
                 {[
                   { key: "has_spouse" as const, label: "配偶者（夫または妻）がいる", emoji: "💑" },
                   { key: "has_children" as const, label: "子ども（実子・養子）がいる", emoji: "👦" },
                   { key: "has_parents_alive" as const, label: "親（父・母）が存命", emoji: "👴" },
                   { key: "has_siblings" as const, label: "兄弟・姉妹がいる", emoji: "👫" },
-                ].map((opt) => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setForm({ ...form, [opt.key]: !form[opt.key] })}
-                    className={`flex w-full items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition-all ${
-                      form[opt.key] ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <span className="text-xl">{opt.emoji}</span>
-                    <span className="font-medium text-slate-800">{opt.label}</span>
-                    <span className={`ml-auto text-sm ${form[opt.key] ? "text-blue-600" : "text-slate-300"}`}>
-                      {form[opt.key] ? "✓" : ""}
-                    </span>
-                  </button>
-                ))}
+                ]
+                  .filter((opt) => !(opt.key === "has_spouse" && form.user_role === "spouse"))
+                  .map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setForm({ ...form, [opt.key]: !form[opt.key] })}
+                      className={`flex w-full items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition-all ${
+                        form[opt.key] ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="text-xl">{opt.emoji}</span>
+                      <span className="font-medium text-slate-800">{opt.label}</span>
+                      <span className={`ml-auto text-sm ${form[opt.key] ? "text-blue-600" : "text-slate-300"}`}>
+                        {form[opt.key] ? "✓" : ""}
+                      </span>
+                    </button>
+                  ))}
               </div>
 
               {/* 年金・保険・証券（3択） */}
@@ -355,8 +453,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 5: 借金（activeモードのみ） */}
-          {step === 5 && form.mode === "active" && (
+          {/* Step 6: 借金（activeモードのみ） */}
+          {step === 6 && form.mode === "active" && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
                 借金や保証人になっていた可能性はありますか？

@@ -20,8 +20,10 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 CREATE TABLE IF NOT EXISTS cases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
+  mode TEXT NOT NULL DEFAULT 'active' CHECK (mode IN ('active', 'preparation')),
+  user_role TEXT NOT NULL DEFAULT 'child' CHECK (user_role IN ('child', 'spouse', 'parent', 'sibling', 'self', 'other')),
   deceased_name TEXT,
-  death_date DATE NOT NULL,
+  death_date DATE,
   has_real_estate BOOLEAN NOT NULL DEFAULT false,
   has_will TEXT NOT NULL DEFAULT 'unknown' CHECK (has_will IN ('none', 'notarized', 'handwritten', 'unknown')),
   heir_count INTEGER NOT NULL DEFAULT 1,

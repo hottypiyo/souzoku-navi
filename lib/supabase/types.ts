@@ -50,6 +50,7 @@ export type Database = {
           id: string;
           user_id: string;
           mode: string;
+          user_role: string;
           deceased_name: string | null;
           death_date: string | null;
           has_real_estate: boolean;
@@ -66,6 +67,7 @@ export type Database = {
           id?: string;
           user_id: string;
           mode?: string;
+          user_role?: string;
           deceased_name?: string | null;
           death_date?: string | null;
           has_real_estate?: boolean;
@@ -82,6 +84,7 @@ export type Database = {
           id?: string;
           user_id?: string;
           mode?: string;
+          user_role?: string;
           deceased_name?: string | null;
           death_date?: string | null;
           has_real_estate?: boolean;
