@@ -49,8 +49,9 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
+          mode: string;
           deceased_name: string | null;
-          death_date: string;
+          death_date: string | null;
           has_real_estate: boolean;
           has_will: string;
           heir_count: number;
@@ -64,8 +65,9 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
+          mode?: string;
           deceased_name?: string | null;
-          death_date: string;
+          death_date?: string | null;
           has_real_estate?: boolean;
           has_will?: string;
           heir_count?: number;
@@ -79,8 +81,9 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
+          mode?: string;
           deceased_name?: string | null;
-          death_date?: string;
+          death_date?: string | null;
           has_real_estate?: boolean;
           has_will?: string;
           heir_count?: number;

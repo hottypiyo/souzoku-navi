@@ -1,8 +1,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getApplicableTasks, getDaysRemaining, PHASE_LABELS } from "@/lib/tasks/definitions";
-import type { TaskPhase } from "@/lib/tasks/definitions";
+import {
+  getApplicableTasks,
+  getApplicablePrepTasks,
+  getDaysRemaining,
+  PHASE_LABELS,
+  PREP_PHASE_LABELS,
+} from "@/lib/tasks/definitions";
+import type { TaskPhase, PrepPhase } from "@/lib/tasks/definitions";
 import TaskCard from "@/components/tasks/task-card";
+import PrepTaskCard from "@/components/tasks/prep-task-card";
 import UpgradeBanner from "@/components/ui/upgrade-banner";
 
 export const metadata = { title: "ダッシュボード" };
@@ -18,7 +25,6 @@ export default async function DashboardPage({
 
   const params = await searchParams;
 
-  // プロフィール取得（プランチェック用）
   const { data: profile } = await supabase
     .from("profiles")
     .select("plan, premium_expires_at")
@@ -30,7 +36,6 @@ export default async function DashboardPage({
     (profile.premium_expires_at === null ||
       new Date(profile.premium_expires_at) > new Date());
 
-  // 案件取得
   let caseId: string | undefined = params.case;
   if (!caseId) {
     const { data: cases } = await supabase
@@ -52,7 +57,6 @@ export default async function DashboardPage({
 
   if (!caseData) redirect("/onboarding");
 
-  // タスク進捗取得
   const { data: progress } = await supabase
     .from("task_progress")
     .select("task_id, status")
@@ -62,25 +66,109 @@ export default async function DashboardPage({
     (progress ?? []).map((p) => [p.task_id, p.status])
   );
 
-  // 適用タスクを取得してフェーズ別に分類
+  const isPreparation = caseData.mode === "preparation";
+  const FREE_DETAIL_LIMIT = 3;
+  let freeDetailCount = 0;
+
+  // ── 事前準備モード ──
+  if (isPreparation) {
+    const prepTasks = getApplicablePrepTasks(caseData);
+    const phases: PrepPhase[] = ["PREP1", "PREP2", "PREP3"];
+
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <header className="border-b border-slate-200 bg-white px-6 py-4">
+          <div className="mx-auto flex max-w-3xl items-center justify-between">
+            <div>
+              <h1 className="text-base font-semibold text-slate-800">相続手続きナビ</h1>
+              <p className="text-xs text-slate-500">
+                {caseData.deceased_name ? `${caseData.deceased_name} さんの` : ""}事前準備チェックリスト
+              </p>
+            </div>
+            {!isPremium && (
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>
+            )}
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-3xl px-4 py-8">
+          <div className="mb-6 rounded-2xl bg-green-50 border border-green-100 p-5">
+            <h2 className="mb-1 font-semibold text-green-800">
+              📋 「いざ」というときに困らないための準備リスト
+            </h2>
+            <p className="text-sm text-green-700">
+              親が元気なうちに確認・準備しておくことで、手続きの負担を大幅に減らせます。
+              完了したタスクにチェックを入れていきましょう。
+            </p>
+          </div>
+
+          {!isPremium && <UpgradeBanner className="mb-6" />}
+
+          {phases.map((phase) => {
+            const phaseTasks = prepTasks.filter((t) => t.phase === phase);
+            if (phaseTasks.length === 0) return null;
+            return (
+              <section key={phase} className="mb-8">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
+                  {PREP_PHASE_LABELS[phase]}
+                </h2>
+                <div className="space-y-3">
+                  {phaseTasks.map((task) => {
+                    const status = progressMap.get(task.id) ?? "pending";
+                    const canViewDetail = isPremium || freeDetailCount < FREE_DETAIL_LIMIT;
+                    if (!isPremium && status !== "completed") freeDetailCount++;
+                    return (
+                      <PrepTaskCard
+                        key={task.id}
+                        task={task}
+                        status={status}
+                        caseId={caseId!}
+                        isPremium={isPremium}
+                        canViewDetail={canViewDetail}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-center">
+            <p className="mb-2 text-sm font-medium text-slate-700">
+              状況が変わったら
+            </p>
+            <p className="mb-4 text-sm text-slate-500">
+              親が亡くなった場合は、手続きリストに切り替えられます。
+            </p>
+            <a
+              href="/onboarding"
+              className="inline-block rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              新しい手続きリストを作成する
+            </a>
+          </div>
+
+          <p className="mt-8 text-center text-xs text-slate-400">
+            本サービスは情報提供を目的としており、法律相談・税務相談ではありません。
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  // ── 通常モード（手続き対応中）──
   const tasks = getApplicableTasks(caseData);
 
-  // 緊急タスク（残り30日以内）
   const urgentTasks = tasks.filter((t) => {
-    if (t.deadlineDays === null) return false;
+    if (t.deadlineDays === null || !caseData.death_date) return false;
     const remaining = getDaysRemaining(caseData.death_date, t.deadlineDays);
     return remaining <= 30 && remaining >= 0 && progressMap.get(t.id) !== "completed";
   });
 
   const phases: TaskPhase[] = ["P1", "P2", "P3", "P4"];
 
-  // フリーユーザーの詳細閲覧上限
-  const FREE_DETAIL_LIMIT = 3;
-  let freeDetailCount = 0;
-
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
       <header className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div>
@@ -89,18 +177,13 @@ export default async function DashboardPage({
               <p className="text-xs text-slate-500">{caseData.deceased_name} さんの相続手続き</p>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            {!isPremium && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
-                無料プラン
-              </span>
-            )}
-          </div>
+          {!isPremium && (
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>
+          )}
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-8">
-        {/* 緊急アラート */}
         {urgentTasks.length > 0 && (
           <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 p-5">
             <h2 className="mb-3 flex items-center gap-2 font-semibold text-red-700">
@@ -108,7 +191,7 @@ export default async function DashboardPage({
             </h2>
             <div className="space-y-2">
               {urgentTasks.map((t) => {
-                const remaining = getDaysRemaining(caseData.death_date, t.deadlineDays!);
+                const remaining = getDaysRemaining(caseData.death_date!, t.deadlineDays!);
                 return (
                   <div key={t.id} className="flex items-center justify-between rounded-lg bg-white px-4 py-3 text-sm">
                     <span className="font-medium text-slate-700">{t.title}</span>
@@ -122,14 +205,11 @@ export default async function DashboardPage({
           </div>
         )}
 
-        {/* プレミアムアップグレードバナー */}
         {!isPremium && <UpgradeBanner className="mb-6" />}
 
-        {/* フェーズ別タスクリスト */}
         {phases.map((phase) => {
           const phaseTasks = tasks.filter((t) => t.phase === phase);
           if (phaseTasks.length === 0) return null;
-
           return (
             <section key={phase} className="mb-8">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
@@ -140,13 +220,12 @@ export default async function DashboardPage({
                   const status = progressMap.get(task.id) ?? "pending";
                   const canViewDetail = isPremium || freeDetailCount < FREE_DETAIL_LIMIT;
                   if (!isPremium && status !== "completed") freeDetailCount++;
-
                   return (
                     <TaskCard
                       key={task.id}
                       task={task}
                       status={status}
-                      deathDate={caseData.death_date}
+                      deathDate={caseData.death_date ?? ""}
                       caseId={caseId!}
                       isPremium={isPremium}
                       canViewDetail={canViewDetail}
@@ -158,7 +237,6 @@ export default async function DashboardPage({
           );
         })}
 
-        {/* 免責 */}
         <p className="mt-8 text-center text-xs text-slate-400">
           本サービスは情報提供を目的としており、法律相談・税務相談ではありません。
           具体的な判断は専門家にご相談ください。
