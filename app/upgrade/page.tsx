@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CheckoutButtons from "@/components/ui/checkout-buttons";
 
 export const metadata = { title: "プレミアムプランへアップグレード" };
 
@@ -79,15 +80,7 @@ export default function UpgradePage({
             </ul>
           </div>
 
-          <div className="space-y-3">
-            {/* Stripe Checkout へのリンク（実装時はServer Actionに差し替え） */}
-            <button className="w-full rounded-xl bg-blue-600 py-3.5 text-base font-semibold text-white hover:bg-blue-700">
-              年額¥9,800で始める
-            </button>
-            <button className="w-full rounded-xl border border-slate-200 py-3.5 text-base font-medium text-slate-700 hover:bg-slate-50">
-              月額¥980で始める
-            </button>
-          </div>
+          <CheckoutButtons />
 
           <p className="mt-4 text-center text-xs text-slate-400">
             Stripeの安全な決済でお支払い。解約はいつでも可能。
