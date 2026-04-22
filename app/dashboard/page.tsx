@@ -130,7 +130,7 @@ export default async function DashboardPage({
                   {PREP_PHASE_LABELS[phase]}
                 </h2>
                 <div className="space-y-3">
-                  {phaseTasks.map((task) => {
+                  {phaseTasks.map(({ condition: _c, ...task }) => {
                     const status = progressMap.get(task.id) ?? "pending";
                     const canViewDetail = isPremium || freeDetailCount < FREE_DETAIL_LIMIT;
                     if (!isPremium && status !== "completed") freeDetailCount++;
@@ -231,7 +231,7 @@ export default async function DashboardPage({
                 {PHASE_LABELS[phase]}
               </h2>
               <div className="space-y-3">
-                {phaseTasks.map((task) => {
+                {phaseTasks.map(({ condition: _c, ...task }) => {
                   const status = progressMap.get(task.id) ?? "pending";
                   const canViewDetail = isPremium || freeDetailCount < FREE_DETAIL_LIMIT;
                   if (!isPremium && status !== "completed") freeDetailCount++;

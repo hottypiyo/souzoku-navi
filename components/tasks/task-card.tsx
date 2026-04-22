@@ -8,7 +8,7 @@ import type { TaskStatus } from "@/lib/supabase/types";
 import { useRouter } from "next/navigation";
 
 interface TaskCardProps {
-  task: TaskDefinition;
+  task: Omit<TaskDefinition, "condition">;
   status: TaskStatus | string;
   deathDate: string;
   caseId: string;

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { PrepTaskDefinition } from "@/lib/tasks/definitions";
 
 interface PrepTaskCardProps {
-  task: PrepTaskDefinition;
+  task: Omit<PrepTaskDefinition, "condition">;
   status: string;
   caseId: string;
   isPremium: boolean;
