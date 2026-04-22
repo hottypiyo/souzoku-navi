@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { WillType } from "@/lib/supabase/types";
 
 type Mode = "active" | "preparation";
+type MaybeBool = "yes" | "maybe" | "no";
 
 interface FormState {
   mode: Mode | null;
@@ -13,16 +14,40 @@ interface FormState {
   death_date: string;
   has_real_estate: boolean | null;
   has_will: WillType | null;
-  heir_count: number | null;
+  // 家族構成（相続人数の推定に使う）
+  has_spouse: boolean;
+  has_children: boolean;
+  has_parents_alive: boolean;
+  has_siblings: boolean;
   debt_concern: boolean | null;
-  has_pension: boolean;
-  has_life_insurance: boolean;
-  has_securities: boolean;
+  // 3択（yes / maybe / no）
+  has_pension: MaybeBool;
+  has_life_insurance: MaybeBool;
+  has_securities: MaybeBool;
+}
+
+/** 家族構成から法定相続人数を概算する */
+function estimateHeirCount(f: FormState): number {
+  if (f.has_children) {
+    return (f.has_spouse ? 1 : 0) + 2; // 子は複数いる可能性があるので最低2として概算
+  }
+  if (f.has_parents_alive) {
+    return (f.has_spouse ? 1 : 0) + 1;
+  }
+  if (f.has_siblings) {
+    return (f.has_spouse ? 1 : 0) + 1;
+  }
+  return f.has_spouse ? 1 : 1;
+}
+
+/** "maybe" は trueとして扱う（保守的な判定） */
+function toBoolean(v: MaybeBool): boolean {
+  return v === "yes" || v === "maybe";
 }
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(0); // 0 = モード選択
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<FormState>({
     mode: null,
@@ -30,28 +55,34 @@ export default function OnboardingPage() {
     death_date: "",
     has_real_estate: null,
     has_will: null,
-    heir_count: null,
+    has_spouse: false,
+    has_children: false,
+    has_parents_alive: false,
+    has_siblings: false,
     debt_concern: null,
-    has_pension: false,
-    has_life_insurance: false,
-    has_securities: false,
+    has_pension: "maybe",
+    has_life_insurance: "maybe",
+    has_securities: "no",
   });
 
-  // 事前準備モードはステップ数が少ない
   const totalSteps = form.mode === "preparation" ? 4 : 5;
 
   const canNext = () => {
     if (step === 0) return form.mode !== null;
     if (step === 1) {
       if (form.mode === "active") return form.death_date !== "";
-      return true; // 事前準備は死亡日不要
+      return true;
     }
     if (step === 2) return form.has_real_estate !== null;
     if (step === 3) return form.has_will !== null;
-    if (step === 4) return form.heir_count !== null;
+    if (step === 4) return true; // 家族構成は任意選択（未選択=一人）
     if (step === 5) return form.debt_concern !== null;
     return true;
   };
+
+  const isFinalStep =
+    (form.mode === "preparation" && step === 4) ||
+    (form.mode === "active" && step === 5);
 
   async function handleSubmit() {
     setLoading(true);
@@ -66,28 +97,22 @@ export default function OnboardingPage() {
       death_date: form.death_date || null,
       has_real_estate: form.has_real_estate ?? false,
       has_will: form.has_will ?? "unknown",
-      heir_count: form.heir_count ?? 1,
+      heir_count: estimateHeirCount(form),
       debt_concern: form.debt_concern ?? false,
-      has_pension: form.has_pension,
-      has_life_insurance: form.has_life_insurance,
-      has_securities: form.has_securities,
+      has_pension: toBoolean(form.has_pension),
+      has_life_insurance: toBoolean(form.has_life_insurance),
+      has_securities: toBoolean(form.has_securities),
     }).select().single();
 
     if (error || !data) { setLoading(false); return; }
     router.push(`/dashboard?case=${data.id}`);
   }
 
-  // 事前準備モードの最終ステップ判定
-  const isFinalStep =
-    (form.mode === "preparation" && step === 4) ||
-    (form.mode === "active" && step === 5);
-
   const progressPercent = step === 0 ? 0 : Math.round((step / totalSteps) * 100);
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-12">
       <div className="mx-auto max-w-lg">
-        {/* Progress */}
         {step > 0 && (
           <div className="mb-8">
             <div className="mb-2 flex justify-between text-xs text-slate-400">
@@ -104,6 +129,7 @@ export default function OnboardingPage() {
         )}
 
         <div className="rounded-2xl bg-white p-8 shadow-sm">
+
           {/* Step 0: モード選択 */}
           {step === 0 && (
             <div>
@@ -120,9 +146,7 @@ export default function OnboardingPage() {
                 >
                   <div className="mb-1 text-2xl">😔</div>
                   <div className="font-semibold text-slate-800">親が亡くなった・亡くなりそう</div>
-                  <div className="mt-1 text-sm text-slate-500">
-                    今すぐ必要な手続きを期限付きで整理します
-                  </div>
+                  <div className="mt-1 text-sm text-slate-500">今すぐ必要な手続きを期限付きで整理します</div>
                 </button>
                 <button
                   onClick={() => { setForm({ ...form, mode: "preparation" }); setStep(1); }}
@@ -130,27 +154,19 @@ export default function OnboardingPage() {
                 >
                   <div className="mb-1 text-2xl">📋</div>
                   <div className="font-semibold text-slate-800">まだ存命で、事前に準備したい</div>
-                  <div className="mt-1 text-sm text-slate-500">
-                    「いざ」というときに困らないための準備チェックリストを作ります
-                  </div>
+                  <div className="mt-1 text-sm text-slate-500">「いざ」というときに困らないための準備リストを作ります</div>
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 1: 死亡日（activeのみ） or 名前（preparation） */}
+          {/* Step 1: 死亡日 or 名前 */}
           {step === 1 && form.mode === "active" && (
             <div>
-              <h2 className="mb-2 text-xl font-bold text-slate-800">
-                亡くなったのはいつですか？
-              </h2>
-              <p className="mb-6 text-sm text-slate-500">
-                期限のカウントダウンを計算するために使います。
-              </p>
+              <h2 className="mb-2 text-xl font-bold text-slate-800">亡くなったのはいつですか？</h2>
+              <p className="mb-6 text-sm text-slate-500">期限のカウントダウンを計算するために使います。</p>
               <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  お名前（任意）
-                </label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">お名前（任意）</label>
                 <input
                   type="text"
                   placeholder="例：田中一郎"
@@ -176,12 +192,8 @@ export default function OnboardingPage() {
 
           {step === 1 && form.mode === "preparation" && (
             <div>
-              <h2 className="mb-2 text-xl font-bold text-slate-800">
-                親御さんのお名前（任意）
-              </h2>
-              <p className="mb-6 text-sm text-slate-500">
-                準備リストに表示する名前です。後から変更できます。
-              </p>
+              <h2 className="mb-2 text-xl font-bold text-slate-800">親御さんのお名前（任意）</h2>
+              <p className="mb-6 text-sm text-slate-500">準備リストに表示する名前です。後から変更できます。</p>
               <input
                 type="text"
                 placeholder="例：田中一郎"
@@ -197,31 +209,42 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
-                不動産（家・土地）はありますか？
+                持ち家や土地はありますか？
               </h2>
-              <p className="mb-6 text-sm text-slate-500">
-                {form.mode === "preparation"
-                  ? "相続登記の準備が必要かどうかを判定します。"
-                  : "相続登記（2024年から義務）の要否を判定します。"}
+              <p className="mb-2 text-sm text-slate-500">
+                自宅・農地・収益物件なども含みます。
+              </p>
+              <p className="mb-6 rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                わからない場合は「ありそう」を選んでください。
               </p>
               <div className="space-y-3">
                 {[
-                  { value: true, label: "ある", desc: "自宅・土地・収益物件など" },
-                  { value: false, label: "ない", desc: "不動産は持っていない" },
-                ].map((opt) => (
-                  <button
-                    key={String(opt.value)}
-                    onClick={() => setForm({ ...form, has_real_estate: opt.value })}
-                    className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
-                      form.has_real_estate === opt.value
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="font-medium text-slate-800">{opt.label}</div>
-                    <div className="text-sm text-slate-500">{opt.desc}</div>
-                  </button>
-                ))}
+                  { value: true, label: "ある", desc: "自宅・土地・マンション・農地など" },
+                  { value: "maybe" as const, label: "ありそう・わからない", desc: "実家があるがくわしくは把握していない" },
+                  { value: false, label: "ない", desc: "賃貸暮らしで不動産はない" },
+                ].map((opt) => {
+                  const isSelected =
+                    opt.value === "maybe"
+                      ? form.has_real_estate === null
+                      : form.has_real_estate === opt.value;
+                  return (
+                    <button
+                      key={String(opt.value)}
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          has_real_estate: opt.value === "maybe" ? true : opt.value,
+                        })
+                      }
+                      className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
+                        isSelected ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="font-medium text-slate-800">{opt.label}</div>
+                      <div className="text-sm text-slate-500">{opt.desc}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -233,24 +256,20 @@ export default function OnboardingPage() {
                 遺言書はありますか？
               </h2>
               <p className="mb-6 text-sm text-slate-500">
-                {form.mode === "preparation"
-                  ? "まだない場合は、作成を検討するタスクが追加されます。"
-                  : "遺言書の種類によって手続きが変わります。"}
+                公証役場で作ったもの、または自分で書いたものです。わからなければ「確認できていない」を選んでください。
               </p>
               <div className="space-y-3">
                 {[
-                  { value: "notarized" as WillType, label: "公正証書遺言がある", desc: "公証役場で作成した遺言書" },
-                  { value: "handwritten" as WillType, label: "自筆証書遺言がある", desc: "手書きの遺言書" },
-                  { value: "none" as WillType, label: "遺言書はない", desc: form.mode === "preparation" ? "作成の準備をしましょう" : "相続人で話し合いが必要" },
-                  { value: "unknown" as WillType, label: "わからない", desc: "まだ確認できていない" },
+                  { value: "notarized" as WillType, label: "公正証書遺言がある", desc: "公証役場で専門家と一緒に作った遺言書" },
+                  { value: "handwritten" as WillType, label: "手書きの遺言書がある", desc: "本人が手書きしたもの（開封前に手続きが必要）" },
+                  { value: "none" as WillType, label: "遺言書はない", desc: form.mode === "preparation" ? "作成を検討しましょう" : "相続人全員での話し合いが必要になります" },
+                  { value: "unknown" as WillType, label: "確認できていない・わからない", desc: "遺品整理をしてからでないとわからない" },
                 ].map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setForm({ ...form, has_will: opt.value })}
                     className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
-                      form.has_will === opt.value
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 hover:border-slate-300"
+                      form.has_will === opt.value ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <div className="font-medium text-slate-800">{opt.label}</div>
@@ -261,113 +280,109 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: 相続人数 */}
+          {/* Step 4: 家族構成（相続人数を推定） */}
           {step === 4 && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
-                相続人は何人ですか？
+                {form.mode === "preparation" ? "親御さんの" : "亡くなった方の"}ご家族を教えてください
               </h2>
-              <p className="mb-6 text-sm text-slate-500">
-                配偶者・子・親・兄弟など、法律上の相続人の人数です。
+              <p className="mb-2 text-sm text-slate-500">
+                当てはまるものをすべて選んでください。
               </p>
-              <div className="space-y-3">
+              <p className="mb-6 rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                これをもとに必要な手続きを絞り込みます。わからなければ選ばなくても大丈夫です。
+              </p>
+              <div className="space-y-2">
                 {[
-                  { value: 1, label: "1人" },
-                  { value: 2, label: "2〜3人" },
-                  { value: 4, label: "4人以上" },
+                  { key: "has_spouse" as const, label: "配偶者（夫または妻）がいる", emoji: "💑" },
+                  { key: "has_children" as const, label: "子ども（実子・養子）がいる", emoji: "👦" },
+                  { key: "has_parents_alive" as const, label: "親（父・母）が存命", emoji: "👴" },
+                  { key: "has_siblings" as const, label: "兄弟・姉妹がいる", emoji: "👫" },
                 ].map((opt) => (
                   <button
-                    key={opt.value}
-                    onClick={() => setForm({ ...form, heir_count: opt.value })}
-                    className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
-                      form.heir_count === opt.value
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 hover:border-slate-300"
+                    key={opt.key}
+                    onClick={() => setForm({ ...form, [opt.key]: !form[opt.key] })}
+                    className={`flex w-full items-center gap-3 rounded-xl border-2 px-5 py-4 text-left transition-all ${
+                      form[opt.key] ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <div className="font-medium text-slate-800">{opt.label}</div>
+                    <span className="text-xl">{opt.emoji}</span>
+                    <span className="font-medium text-slate-800">{opt.label}</span>
+                    <span className={`ml-auto text-sm ${form[opt.key] ? "text-blue-600" : "text-slate-300"}`}>
+                      {form[opt.key] ? "✓" : ""}
+                    </span>
                   </button>
                 ))}
               </div>
 
-              {/* 事前準備モードの追加チェックボックス（最終ステップ） */}
-              {form.mode === "preparation" && (
-                <div className="mt-6 border-t border-slate-100 pt-5">
-                  <p className="mb-3 text-sm font-medium text-slate-700">
-                    該当するものがあれば教えてください（複数可）
-                  </p>
-                  <div className="space-y-2">
-                    {[
-                      { key: "has_pension" as const, label: "年金を受給している（または受給予定）" },
-                      { key: "has_life_insurance" as const, label: "生命保険に加入している" },
-                      { key: "has_securities" as const, label: "株式・投資信託を持っている" },
-                    ].map((opt) => (
-                      <label key={opt.key} className="flex cursor-pointer items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={form[opt.key]}
-                          onChange={(e) => setForm({ ...form, [opt.key]: e.target.checked })}
-                          className="h-4 w-4 rounded border-slate-300 text-blue-600"
-                        />
-                        <span className="text-sm text-slate-700">{opt.label}</span>
-                      </label>
-                    ))}
-                  </div>
+              {/* 年金・保険・証券（3択） */}
+              <div className="mt-6 border-t border-slate-100 pt-5">
+                <p className="mb-1 text-sm font-medium text-slate-700">資産・保険について</p>
+                <p className="mb-4 text-xs text-slate-400">
+                  「わからない・ありそう」を選ぶと、確認が必要なタスクが追加されます。
+                </p>
+                <div className="space-y-4">
+                  {[
+                    { key: "has_pension" as const, label: "年金を受給していた（または受給予定）" },
+                    { key: "has_life_insurance" as const, label: "生命保険に加入していた（または加入中）" },
+                    { key: "has_securities" as const, label: "株式・投資信託・証券口座があった" },
+                  ].map((item) => (
+                    <div key={item.key}>
+                      <p className="mb-2 text-sm text-slate-600">{item.label}</p>
+                      <div className="flex gap-2">
+                        {[
+                          { value: "yes" as MaybeBool, label: "ある" },
+                          { value: "maybe" as MaybeBool, label: "わからない・ありそう" },
+                          { value: "no" as MaybeBool, label: "ない" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setForm({ ...form, [item.key]: opt.value })}
+                            className={`flex-1 rounded-lg border-2 py-2 text-xs font-medium transition-all ${
+                              form[item.key] === opt.value
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-slate-200 text-slate-600 hover:border-slate-300"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           )}
 
-          {/* Step 5: 借金 + その他（activeモードのみ） */}
+          {/* Step 5: 借金（activeモードのみ） */}
           {step === 5 && form.mode === "active" && (
             <div>
               <h2 className="mb-2 text-xl font-bold text-slate-800">
-                借金や連帯保証の心配はありますか？
+                借金や保証人になっていた可能性はありますか？
               </h2>
-              <p className="mb-4 text-sm text-slate-500">
-                「相続放棄」の必要性を判断します（期限：3ヶ月）。
+              <p className="mb-2 text-sm text-slate-500">
+                住宅ローン・カードローン・友人への連帯保証など。
               </p>
-              <div className="mb-6 space-y-3">
+              <p className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-xs text-amber-700">
+                借金を引き継ぎたくない場合、「相続放棄」という手続きが<strong>3ヶ月以内</strong>に必要です。まだわからなくてもOKです。
+              </p>
+              <div className="space-y-3">
                 {[
-                  { value: true, label: "ある・かもしれない", desc: "借金・保証人・ローン等の可能性がある" },
-                  { value: false, label: "ない", desc: "プラスの財産のみと思われる" },
+                  { value: true as const, label: "ある・あるかもしれない", desc: "借金・ローン・保証人などの可能性がある" },
+                  { value: false as const, label: "おそらくない", desc: "プラスの財産だけと思われる" },
                 ].map((opt) => (
                   <button
                     key={String(opt.value)}
                     onClick={() => setForm({ ...form, debt_concern: opt.value })}
                     className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
-                      form.debt_concern === opt.value
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-slate-200 hover:border-slate-300"
+                      form.debt_concern === opt.value ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <div className="font-medium text-slate-800">{opt.label}</div>
                     <div className="text-sm text-slate-500">{opt.desc}</div>
                   </button>
                 ))}
-              </div>
-
-              <div className="border-t border-slate-100 pt-5">
-                <p className="mb-3 text-sm font-medium text-slate-700">
-                  該当するものがあれば教えてください（複数可）
-                </p>
-                <div className="space-y-2">
-                  {[
-                    { key: "has_pension" as const, label: "年金を受給していた" },
-                    { key: "has_life_insurance" as const, label: "生命保険に加入していた" },
-                    { key: "has_securities" as const, label: "株式・投資信託を持っていた" },
-                  ].map((opt) => (
-                    <label key={opt.key} className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={form[opt.key]}
-                        onChange={(e) => setForm({ ...form, [opt.key]: e.target.checked })}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600"
-                      />
-                      <span className="text-sm text-slate-700">{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -401,6 +416,10 @@ export default function OnboardingPage() {
             )}
           </div>
         </div>
+
+        <p className="mt-4 text-center text-xs text-slate-400">
+          あとから情報を更新することもできます
+        </p>
       </div>
     </div>
   );
