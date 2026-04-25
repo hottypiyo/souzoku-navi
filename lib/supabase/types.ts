@@ -9,6 +9,7 @@ export type Json =
 export type WillType = "none" | "notarized" | "handwritten" | "unknown";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "skipped";
 export type PlanType = "free" | "premium";
+export type SpecialistType = "tax_accountant" | "judicial_scrivener" | "administrative_scrivener" | "lawyer";
 
 export type Database = {
   public: {
@@ -114,6 +115,52 @@ export type Database = {
             referencedColumns: ["id"];
           }
         ];
+      };
+      specialists: {
+        Row: {
+          id: string;
+          name: string;
+          type: SpecialistType;
+          office_name: string | null;
+          prefecture: string;
+          city: string | null;
+          email: string;
+          phone: string | null;
+          website: string | null;
+          specialties: string[] | null;
+          bio: string | null;
+          is_approved: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          type: SpecialistType;
+          office_name?: string | null;
+          prefecture: string;
+          city?: string | null;
+          email: string;
+          phone?: string | null;
+          website?: string | null;
+          specialties?: string[] | null;
+          bio?: string | null;
+          is_approved?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          type?: SpecialistType;
+          office_name?: string | null;
+          prefecture?: string;
+          city?: string | null;
+          email?: string;
+          phone?: string | null;
+          website?: string | null;
+          specialties?: string[] | null;
+          bio?: string | null;
+          is_approved?: boolean;
+        };
+        Relationships: [];
       };
       task_progress: {
         Row: {

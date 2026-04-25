@@ -11,7 +11,9 @@ const PUBLIC_PATHS = [
   "/tokushoho",
   "/sitemap.xml",
   "/robots.txt",
+  "/specialists/register",
   "/api/stripe/webhook",
+  "/api/specialists",
 ];
 
 export async function proxy(request: NextRequest) {

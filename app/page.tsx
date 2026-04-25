@@ -216,8 +216,9 @@ export default function LandingPage() {
                   "必要書類・窓口・持参物の一覧",
                   "タスク完了チェック管理",
                   "期限リマインダーメール",
-                  "司法書士・税理士への相談案内",
+                  "税理士・司法書士への相談案内",
                   "状況の後から更新・複数案件対応",
+                  "専門家ディレクトリへのアクセス",
                 ].map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <span className="text-blue-200">✓</span> {f}

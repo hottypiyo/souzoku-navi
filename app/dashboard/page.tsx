@@ -111,7 +111,10 @@ export default async function DashboardPage({
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>
             )}
             {isPremium && (
-              <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
+              <div className="flex items-center gap-3">
+                <a href="/specialists" className="text-xs text-blue-600 hover:underline">専門家を探す</a>
+                <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
+              </div>
             )}
           </div>
           </div>
@@ -211,9 +214,14 @@ export default async function DashboardPage({
             <h1 className="text-base font-semibold text-slate-800">相続手続きナビ</h1>
             <p className="text-xs text-slate-500">{subjectLabel}の相続手続き</p>
           </div>
-          {!isPremium && (
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>
-          )}
+          <div className="flex items-center gap-3">
+            {!isPremium && (
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>
+            )}
+            {isPremium && (
+              <a href="/specialists" className="text-xs text-blue-600 hover:underline">専門家を探す</a>
+            )}
+          </div>
         </div>
       </header>
 
