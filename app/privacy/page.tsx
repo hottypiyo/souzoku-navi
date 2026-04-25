@@ -1,4 +1,9 @@
-export const metadata = { title: "プライバシーポリシー | 相続手続きナビ" };
+export const metadata = {
+  title: "プライバシーポリシー",
+  description: "相続手続きナビにおける個人情報の収集・利用・管理方針について説明します。",
+  alternates: { canonical: "https://souzoku-navi.app/privacy" },
+  robots: { index: true, follow: false },
+};
 
 export default function PrivacyPage() {
   return (

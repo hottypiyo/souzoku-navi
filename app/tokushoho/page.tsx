@@ -1,4 +1,9 @@
-export const metadata = { title: "特定商取引法に基づく表記 | 相続手続きナビ" };
+export const metadata = {
+  title: "特定商取引法に基づく表記",
+  description: "相続手続きナビの販売業者情報・料金・解約・返金に関する特定商取引法の表記です。",
+  alternates: { canonical: "https://souzoku-navi.app/tokushoho" },
+  robots: { index: true, follow: false },
+};
 
 const rows = [
   { label: "販売業者", value: "堀田昂佑" },

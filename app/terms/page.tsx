@@ -1,4 +1,9 @@
-export const metadata = { title: "利用規約 | 相続手続きナビ" };
+export const metadata = {
+  title: "利用規約",
+  description: "相続手続きナビのサービス利用に関する規約です。",
+  alternates: { canonical: "https://souzoku-navi.app/terms" },
+  robots: { index: true, follow: false },
+};
 
 const sections = [
   {

@@ -1,8 +1,58 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "相続手続きナビ | 相続手続きをわかりやすく",
+  description:
+    "親が亡くなった後の相続手続きを、あなたの状況に合わせてナビゲート。相続放棄・相続税・不動産登記など期限付きタスクを一覧管理。AI相談・LINE通知対応。",
+  alternates: { canonical: "https://souzoku-navi.app" },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "相続手続きナビ",
+  url: "https://souzoku-navi.app",
+  description:
+    "親が亡くなった後の相続手続きを、あなたの状況に合わせてナビゲートするWebアプリ。期限付きタスク管理・AI相談・LINE通知に対応。",
+  applicationCategory: "LegalApplication",
+  operatingSystem: "Web",
+  offers: [
+    {
+      "@type": "Offer",
+      name: "無料プラン",
+      price: "0",
+      priceCurrency: "JPY",
+    },
+    {
+      "@type": "Offer",
+      name: "プレミアムプラン（月額）",
+      price: "980",
+      priceCurrency: "JPY",
+      billingDuration: "P1M",
+    },
+    {
+      "@type": "Offer",
+      name: "プレミアムプラン（年額）",
+      price: "9800",
+      priceCurrency: "JPY",
+      billingDuration: "P1Y",
+    },
+  ],
+  publisher: {
+    "@type": "Person",
+    name: "堀田昂佑",
+  },
+  inLanguage: "ja",
+};
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Header */}
       <header className="border-b border-slate-100 px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
