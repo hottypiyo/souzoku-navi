@@ -111,9 +111,6 @@ export default async function DashboardPage({
       <select
         name="case"
         defaultValue={caseId}
-        onChange={(e) => {
-          // クライアントside navigation - フォーム送信で対応
-        }}
         className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs focus:outline-none"
       >
         {allCases.map((c) => (
