@@ -11,6 +11,7 @@ import type { TaskPhase, PrepPhase } from "@/lib/tasks/definitions";
 import TaskCard from "@/components/tasks/task-card";
 import PrepTaskCard from "@/components/tasks/prep-task-card";
 import UpgradeBanner from "@/components/ui/upgrade-banner";
+import ChatWidget from "@/components/ai/chat-widget";
 
 export const metadata = { title: "ダッシュボード" };
 
@@ -85,12 +86,17 @@ export default async function DashboardPage({
   const FREE_DETAIL_LIMIT = 3;
   let freeDetailCount = 0;
 
+  const caseContext = isPreparation
+    ? `モード: 事前準備（終活・相続準備）\nユーザーの立場: ${userRole}\n対象者: ${deceasedName ?? "未設定"}`
+    : `モード: 相続手続き中\nユーザーの立場: ${userRole}\n故人名: ${deceasedName ?? "未設定"}\n死亡日: ${caseData.death_date ?? "未設定"}`;
+
   // ── 事前準備モード ──
   if (isPreparation) {
     const prepTasks = getApplicablePrepTasks(caseData);
     const phases: PrepPhase[] = ["PREP1", "PREP2", "PREP3"];
 
     return (
+      <>
       <div className="min-h-screen bg-slate-50">
         <header className="border-b border-slate-200 bg-white px-6 py-4">
           <div className="mx-auto flex max-w-3xl items-center justify-between">
@@ -100,9 +106,14 @@ export default async function DashboardPage({
                 {subjectLabel}の{userRole === "self" ? "終活" : "相続"}準備チェックリスト
               </p>
             </div>
+            <div className="flex items-center gap-3">
             {!isPremium && (
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">無料プラン</span>
             )}
+            {isPremium && (
+              <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
+            )}
+          </div>
           </div>
         </header>
 
@@ -170,6 +181,8 @@ export default async function DashboardPage({
           </p>
         </main>
       </div>
+      <ChatWidget caseContext={caseContext} />
+      </>
     );
   }
 
@@ -185,6 +198,7 @@ export default async function DashboardPage({
   const phases: TaskPhase[] = ["P1", "P2", "P3", "P4"];
 
   return (
+    <>
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
@@ -258,5 +272,7 @@ export default async function DashboardPage({
         </p>
       </main>
     </div>
+    <ChatWidget caseContext={caseContext} />
+    </>
   );
 }

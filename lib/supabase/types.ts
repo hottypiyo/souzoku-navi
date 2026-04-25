@@ -21,6 +21,9 @@ export type Database = {
           premium_expires_at: string | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          line_user_id: string | null;
+          notify_email: boolean;
+          notify_line: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -31,6 +34,9 @@ export type Database = {
           premium_expires_at?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          line_user_id?: string | null;
+          notify_email?: boolean;
+          notify_line?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -41,6 +47,9 @@ export type Database = {
           premium_expires_at?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          line_user_id?: string | null;
+          notify_email?: boolean;
+          notify_line?: boolean;
           updated_at?: string;
         };
         Relationships: [];
