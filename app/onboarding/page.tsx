@@ -14,7 +14,7 @@ interface FormState {
   user_role: UserRole | null;
   deceased_name: string;
   death_date: string;
-  has_real_estate: boolean | null;
+  has_real_estate: boolean | "maybe" | null;
   has_will: WillType | null;
   has_spouse: boolean;
   has_children: boolean;
@@ -81,7 +81,7 @@ export default function OnboardingPage() {
       if (form.mode === "active") return form.death_date !== "";
       return true;
     }
-    if (step === 3) return form.has_real_estate !== null;
+    if (step === 3) return form.has_real_estate !== null && form.has_real_estate !== undefined;
     if (step === 4) return form.has_will !== null;
     if (step === 5) return true;
     if (step === 6) return form.debt_concern !== null;
@@ -108,7 +108,7 @@ export default function OnboardingPage() {
       user_role: form.user_role ?? "child",
       deceased_name: form.deceased_name || null,
       death_date: form.death_date || null,
-      has_real_estate: form.has_real_estate ?? false,
+      has_real_estate: form.has_real_estate === false ? false : form.has_real_estate !== null,
       has_will: form.has_will ?? "unknown",
       heir_count: estimateHeirCount(effectiveForm),
       debt_concern: form.debt_concern ?? false,
@@ -307,23 +307,15 @@ export default function OnboardingPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  { value: true, label: "ある", desc: "自宅・土地・マンション・農地など" },
+                  { value: true as const, label: "ある", desc: "自宅・土地・マンション・農地など" },
                   { value: "maybe" as const, label: "ありそう・わからない", desc: "実家があるがくわしくは把握していない" },
-                  { value: false, label: "ない", desc: "賃貸暮らしで不動産はない" },
+                  { value: false as const, label: "ない", desc: "賃貸暮らしで不動産はない" },
                 ].map((opt) => {
-                  const isSelected =
-                    opt.value === "maybe"
-                      ? form.has_real_estate === null
-                      : form.has_real_estate === opt.value;
+                  const isSelected = form.has_real_estate === opt.value;
                   return (
                     <button
                       key={String(opt.value)}
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          has_real_estate: opt.value === "maybe" ? true : opt.value,
-                        })
-                      }
+                      onClick={() => setForm({ ...form, has_real_estate: opt.value })}
                       className={`w-full rounded-xl border-2 px-5 py-4 text-left transition-all ${
                         isSelected ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300"
                       }`}
