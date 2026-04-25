@@ -63,7 +63,7 @@ export async function sendReminderEmail({
 </html>`;
 
   await resend.emails.send({
-    from: "相続手続きナビ <noreply@souzoku-navi.com>",
+    from: "相続手続きナビ <noreply@souzoku-navi.app>",
     to,
     subject,
     html,
