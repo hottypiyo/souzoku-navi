@@ -189,15 +189,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Disclaimer */}
-      <section className="px-6 py-8">
-        <div className="mx-auto max-w-3xl">
+      {/* Footer */}
+      <footer className="border-t border-slate-100 px-6 py-8">
+        <div className="mx-auto max-w-3xl space-y-3">
           <p className="text-center text-xs text-slate-400">
             本サービスは情報提供を目的としており、法律相談・税務相談ではありません。
             具体的な法的判断・税務判断については、司法書士・弁護士・税理士等の専門家にご相談ください。
           </p>
+          <div className="flex justify-center gap-6 text-xs text-slate-400">
+            <a href="/terms" className="hover:text-slate-600">利用規約</a>
+            <a href="/privacy" className="hover:text-slate-600">プライバシーポリシー</a>
+            <a href="/tokushoho" className="hover:text-slate-600">特定商取引法に基づく表記</a>
+          </div>
+          <p className="text-center text-xs text-slate-300">© 2026 堀田昂佑</p>
         </div>
-      </section>
+      </footer>
     </main>
   );
 }

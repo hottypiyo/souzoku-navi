@@ -176,9 +176,14 @@ export default async function DashboardPage({
             </a>
           </div>
 
-          <p className="mt-8 text-center text-xs text-slate-400">
+            <p className="mt-8 text-center text-xs text-slate-400">
             本サービスは情報提供を目的としており、法律相談・税務相談ではありません。
           </p>
+          <div className="mt-3 flex justify-center gap-4 text-xs text-slate-300">
+            <a href="/terms" className="hover:text-slate-500">利用規約</a>
+            <a href="/privacy" className="hover:text-slate-500">プライバシーポリシー</a>
+            <a href="/tokushoho" className="hover:text-slate-500">特定商取引法</a>
+          </div>
         </main>
       </div>
       <ChatWidget caseContext={caseContext} />
@@ -270,6 +275,11 @@ export default async function DashboardPage({
           本サービスは情報提供を目的としており、法律相談・税務相談ではありません。
           具体的な判断は専門家にご相談ください。
         </p>
+        <div className="mt-3 flex justify-center gap-4 text-xs text-slate-300">
+          <a href="/terms" className="hover:text-slate-500">利用規約</a>
+          <a href="/privacy" className="hover:text-slate-500">プライバシーポリシー</a>
+          <a href="/tokushoho" className="hover:text-slate-500">特定商取引法</a>
+        </div>
       </main>
     </div>
     <ChatWidget caseContext={caseContext} />
