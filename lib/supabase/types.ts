@@ -116,6 +116,34 @@ export type Database = {
           }
         ];
       };
+      case_members: {
+        Row: {
+          id: string;
+          case_id: string;
+          invited_email: string;
+          user_id: string | null;
+          role: string;
+          invite_token: string | null;
+          invited_at: string;
+          joined_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          case_id: string;
+          invited_email: string;
+          user_id?: string | null;
+          role?: string;
+          invite_token?: string | null;
+          invited_at?: string;
+          joined_at?: string | null;
+        };
+        Update: {
+          user_id?: string | null;
+          role?: string;
+          joined_at?: string | null;
+        };
+        Relationships: [];
+      };
       specialists: {
         Row: {
           id: string;

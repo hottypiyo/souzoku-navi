@@ -2,6 +2,21 @@ import { Resend } from "resend";
 
 export const resend = new Resend(process.env.RESEND_API_KEY);
 
+interface SimpleEmailParams {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+export async function sendEmail({ to, subject, html }: SimpleEmailParams): Promise<void> {
+  await resend.emails.send({
+    from: "相続手続きナビ <noreply@souzoku-navi.app>",
+    to,
+    subject,
+    html,
+  });
+}
+
 interface ReminderEmailParams {
   to: string;
   deceasedName: string | null;

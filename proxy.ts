@@ -14,6 +14,7 @@ const PUBLIC_PATHS = [
   "/specialists/register",
   "/api/stripe/webhook",
   "/api/specialists",
+  "/invite",
 ];
 
 export async function proxy(request: NextRequest) {
@@ -43,7 +44,7 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
 
-  const isPublic = PUBLIC_PATHS.some((p) => path === p) ||
+  const isPublic = PUBLIC_PATHS.some((p) => path === p || path.startsWith(p + "/")) ||
     path.startsWith("/api/auth");
 
   if (!user && !isPublic) {

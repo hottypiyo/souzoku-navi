@@ -17,6 +17,8 @@ export interface TaskDefinition {
   where: string;
   requiredDocs: string[];
   commonMistakes: string[];
+  estimatedTime?: string;  // e.g. "30〜60分"
+  estimatedCost?: string;  // e.g. "無料" or "収入印紙800円〜"
   needsProfessional: boolean;
   professionalType?: string;
   condition?: (c: CaseRow) => boolean;
@@ -49,6 +51,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "病院・医師",
     requiredDocs: [],
     commonMistakes: ["コピーを少なくしか取らない（後で各機関に提出するため10部以上必要）", "再発行ができない場合があるので原本は大切に保管"],
+    estimatedTime: "30〜60分",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
   {
@@ -62,6 +66,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "死亡地・本籍地・届出人住所地の市区町村窓口",
     requiredDocs: ["死亡診断書（死亡届と一体）", "届出人の印鑑"],
     commonMistakes: ["提出後は死亡届のコピーが取れなくなるため、事前にコピーしておく"],
+    estimatedTime: "30〜60分",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
   {
@@ -75,6 +81,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "市区町村窓口（死亡届提出時に同時申請）",
     requiredDocs: [],
     commonMistakes: ["火葬後に埋葬許可証になる。墓地への埋葬時に必要なため紛失注意"],
+    estimatedTime: "死亡届と同時",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
   {
@@ -88,6 +96,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "年金事務所（電話可）",
     requiredDocs: [],
     commonMistakes: ["未手続きで振り込みが続くと後日全額返還請求される（2ヶ月分超えると督促）"],
+    estimatedTime: "15分（電話）",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => c.has_pension,
   },
@@ -102,6 +112,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "故人の勤務先",
     requiredDocs: [],
     commonMistakes: ["死亡退職金・弔慰金・健康保険の埋葬料（5万円）の申請を忘れやすい"],
+    estimatedTime: "15〜30分",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
 
@@ -119,6 +131,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "住所地の市区町村窓口",
     requiredDocs: ["死亡診断書コピー", "故人の国民健康保険証", "届出人の印鑑・身分証"],
     commonMistakes: ["死亡後も保険証を使うと不正利用。保険証は返還する"],
+    estimatedTime: "30〜60分",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
   {
@@ -132,6 +146,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "市区町村窓口（広域連合の窓口）",
     requiredDocs: ["死亡診断書コピー", "後期高齢者医療保険証"],
     commonMistakes: ["資格喪失後の医療費は全額自己負担になる"],
+    estimatedTime: "30〜60分",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => {
       // 75歳以上なら後期高齢者医療保険に加入しているはず
@@ -150,6 +166,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "年金事務所（郵送可）",
     requiredDocs: ["年金証書", "死亡診断書コピー", "届出人の身分証"],
     commonMistakes: ["配偶者が遺族年金を受けられる場合は別途申請（早めに確認する）"],
+    estimatedTime: "1〜2時間（窓口）",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => c.has_pension,
   },
@@ -164,6 +182,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "年金事務所",
     requiredDocs: ["年金証書", "死亡診断書コピー", "生計同一証明書", "請求者の通帳"],
     commonMistakes: ["平均3〜4ヶ月分が未支給。相続財産でなく遺族固有の請求権のため忘れやすい"],
+    estimatedTime: "1〜2時間（窓口）",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => c.has_pension,
   },
@@ -178,6 +198,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "加入していた健康保険組合",
     requiredDocs: ["死亡診断書コピー", "埋葬を行ったことがわかる領収書", "請求者の身分証・通帳"],
     commonMistakes: ["期限は2年と長いが忘れやすい。被用者保険加入者なら必ず申請する"],
+    estimatedTime: "30〜60分",
+    estimatedCost: "無料（給付金5万円を受取）",
     needsProfessional: false,
   },
   {
@@ -191,6 +213,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "住所地の市区町村窓口",
     requiredDocs: ["届出人の身分証", "印鑑"],
     commonMistakes: ["同世帯に成人が1人だけの場合は不要。要否の判断ミスが多い"],
+    estimatedTime: "30分",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => c.heir_count > 1,
   },
@@ -209,6 +233,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "故人の最後の住所地の家庭裁判所",
     requiredDocs: ["遺言書（封印したまま）", "故人の戸籍謄本", "相続人全員の戸籍謄本"],
     commonMistakes: ["検認前に勝手に開封すると5万円以下の過料。公正証書遺言は検認不要"],
+    estimatedTime: "申請〜完了まで1〜3ヶ月",
+    estimatedCost: "収入印紙800円+郵便切手",
     needsProfessional: true,
     professionalType: "司法書士",
     condition: (c) => c.has_will === "handwritten",
@@ -224,6 +250,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "法務局・金融機関・税務署・保険会社など",
     requiredDocs: ["故人の通帳・証書類", "不動産の権利証", "固定資産税納税通知書"],
     commonMistakes: ["借金・連帯保証債務の見落としが相続放棄ミスの最大原因"],
+    estimatedTime: "1〜2ヶ月",
+    estimatedCost: "無料（専門家依頼なら別途）",
     needsProfessional: false,
   },
   {
@@ -241,6 +269,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
       "相続人全員ではなく個人単位で放棄できる",
       "3ヶ月の伸長を家庭裁判所に申請することも可能（早めに相談を）",
     ],
+    estimatedTime: "申請〜完了まで1〜3ヶ月",
+    estimatedCost: "収入印紙800円（1人あたり）",
     needsProfessional: true,
     professionalType: "司法書士・弁護士",
     condition: (c) => c.debt_concern,
@@ -256,6 +286,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "各本籍地の市区町村（郵送請求可）",
     requiredDocs: ["申請書", "手数料（1通450円）", "返信用封筒"],
     commonMistakes: ["転籍が多い場合は10通以上になることも。全ての本籍地を追う必要がある"],
+    estimatedTime: "2〜4週間（郵送含む）",
+    estimatedCost: "1通450円〜",
     needsProfessional: false,
   },
   {
@@ -269,6 +301,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "法務局（管轄外でも可）",
     requiredDocs: ["故人・相続人全員の戸籍謄本", "住所証明書"],
     commonMistakes: ["一度作ると銀行・税務署・法務局で使い回せるため、先に作ると後の手続きが楽になる"],
+    estimatedTime: "2〜4週間",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
   {
@@ -285,6 +319,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
       "給与所得者でも年度途中の死亡なら準確定申告が必要",
       "医療費控除・還付が発生することもある（見落とし注意）",
     ],
+    estimatedTime: "3〜5時間（自分で）",
+    estimatedCost: "自分で：無料 / 税理士依頼：5〜20万円",
     needsProfessional: true,
     professionalType: "税理士",
   },
@@ -299,6 +335,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "各金融機関の相続窓口",
     requiredDocs: ["戸籍謄本（法定相続情報一覧図で代替可）", "遺産分割協議書", "相続人全員の印鑑証明書"],
     commonMistakes: ["銀行ごとに必要書類が異なる。1行で平均1〜2ヶ月かかる"],
+    estimatedTime: "1〜2ヶ月（1行あたり）",
+    estimatedCost: "無料",
     needsProfessional: false,
   },
   {
@@ -315,6 +353,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
       "生命保険金は遺産ではなく受取人固有の財産（相続手続きと別ルート）",
       "忘れると時効（3年）で権利を失う",
     ],
+    estimatedTime: "2週間〜1ヶ月",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => c.has_life_insurance,
   },
@@ -333,6 +373,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "自作 または 司法書士・行政書士に依頼",
     requiredDocs: ["相続人全員の実印", "印鑑証明書（各1通）"],
     commonMistakes: ["1人でも未参加・拒否だと無効。海外在住者はアポスティーユが必要"],
+    estimatedTime: "1〜3ヶ月",
+    estimatedCost: "自作：無料 / 依頼：5〜15万円",
     needsProfessional: true,
     professionalType: "司法書士・行政書士",
     condition: (c) => c.heir_count > 1,
@@ -351,6 +393,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
       "2024年4月から義務化。過料10万円の罰則あり",
       "複数の不動産は各管轄法務局に別々に申請が必要",
     ],
+    estimatedTime: "2〜4週間",
+    estimatedCost: "登録免許税：固定資産評価額×0.4%",
     needsProfessional: true,
     professionalType: "司法書士",
     condition: (c) => c.has_real_estate,
@@ -366,6 +410,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
     where: "各証券会社の相続窓口",
     requiredDocs: ["遺産分割協議書", "戸籍謄本", "証券口座の情報"],
     commonMistakes: ["証券会社ごとに手続きが異なる。休眠口座の発見が困難なため通帳・郵便物を要確認"],
+    estimatedTime: "1〜2ヶ月（1社あたり）",
+    estimatedCost: "無料",
     needsProfessional: false,
     condition: (c) => c.has_securities,
   },
@@ -383,6 +429,8 @@ export const TASK_DEFINITIONS: TaskDefinition[] = [
       "期限1日超えでも延滞税・無申告加算税が発生する",
       "小規模宅地等の特例（最大80%評価減）を申告しないと適用されない",
     ],
+    estimatedTime: "3〜5ヶ月（税理士依頼）",
+    estimatedCost: "遺産総額の0.5〜1%程度",
     needsProfessional: true,
     professionalType: "相続専門税理士",
   },
