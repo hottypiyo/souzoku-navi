@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripe, PRICES } from "@/lib/stripe/client";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // 同一ユーザーによる過剰なセッション生成を抑制（5分間に5回まで）
+  if (!checkRateLimit(`checkout:${user.id}`, { windowMs: 5 * 60 * 1000, max: 5 })) {
+    return NextResponse.json({ error: "しばらくしてから再度お試しください" }, { status: 429 });
+  }
 
   const { interval } = await req.json() as { interval: "month" | "year" };
   const priceId = interval === "year" ? PRICES.premiumYearly : PRICES.premiumMonthly;
