@@ -7,8 +7,8 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  // Supabase REST + Realtime WebSocket
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  // Supabase REST + Realtime WebSocket, PostHog analytics
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.i.posthog.com https://us.i.posthog.com https://eu.i.posthog.com",
   "frame-src 'none'",
   // Prevent clickjacking from any origin
   "frame-ancestors 'none'",

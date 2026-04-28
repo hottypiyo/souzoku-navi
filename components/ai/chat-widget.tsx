@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, isTextUIPart } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { posthog } from "@/lib/posthog";
 
 const QUICK_QUESTIONS = [
   "相続放棄の期限と手続きを教えてください",
@@ -32,12 +33,14 @@ export default function ChatWidget({ caseContext }: Props) {
   }, [messages, isLoading]);
 
   function askQuickQuestion(q: string) {
+    posthog.capture("chat_message_sent", { source: "quick_question" });
     sendMessage({ text: q });
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+    posthog.capture("chat_message_sent", { source: "input" });
     sendMessage({ text: input });
     setInput("");
   }
@@ -150,7 +153,7 @@ export default function ChatWidget({ caseContext }: Props) {
 
       {/* フローティングボタン */}
       <button
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => setIsOpen((v) => { if (!v) posthog.capture("chat_opened"); return !v; })}
         className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors"
         aria-label="AI相談を開く"
       >

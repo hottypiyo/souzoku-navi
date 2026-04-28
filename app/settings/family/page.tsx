@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { posthog } from "@/lib/posthog";
 
 interface CaseOption {
   id: string;
@@ -60,6 +61,7 @@ export default function FamilySettingsPage() {
       body: JSON.stringify({ caseId: selectedCase, email }),
     });
     if (res.ok) {
+      posthog.capture("family_invite_sent");
       setStatus("success");
       setEmail("");
       loadMembersForCase(selectedCase);

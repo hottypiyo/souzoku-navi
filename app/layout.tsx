@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
+import PostHogProvider from "@/components/analytics/posthog-provider";
 import "./globals.css";
 
 const notoSansJP = Noto_Sans_JP({
@@ -65,7 +66,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className={notoSansJP.variable}>
       <body className="min-h-screen bg-slate-50 font-sans antialiased">
-        {children}
+        <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>
   );

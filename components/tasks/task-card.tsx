@@ -6,6 +6,7 @@ import { getDaysRemaining } from "@/lib/tasks/definitions";
 import type { TaskDefinition } from "@/lib/tasks/definitions";
 import type { TaskStatus } from "@/lib/supabase/types";
 import { useRouter } from "next/navigation";
+import { posthog } from "@/lib/posthog";
 
 interface TaskCardProps {
   task: Omit<TaskDefinition, "condition">;
@@ -52,6 +53,10 @@ export default function TaskCard({
       status: newStatus,
       completed_at: newStatus === "completed" ? new Date().toISOString() : null,
     }, { onConflict: "case_id,task_id" });
+    posthog.capture(newStatus === "completed" ? "task_completed" : "task_uncompleted", {
+      task_id: task.id,
+      task_title: task.title,
+    });
     setCurrentStatus(newStatus);
     setLoading(false);
     router.refresh();

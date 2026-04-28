@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { posthog } from "@/lib/posthog";
 
 export default function CheckoutButtons() {
   const [loading, setLoading] = useState<"month" | "year" | null>(null);
 
   async function startCheckout(interval: "month" | "year") {
+    posthog.capture("checkout_started", { interval });
     setLoading(interval);
     const res = await fetch("/api/checkout", {
       method: "POST",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { posthog } from "@/lib/posthog";
 import type { WillType } from "@/lib/supabase/types";
 
 type Mode = "active" | "preparation";
@@ -118,6 +119,13 @@ export default function OnboardingPage() {
     }).select().single();
 
     if (error || !data) { setLoading(false); return; }
+    posthog.capture("onboarding_completed", {
+      mode: form.mode,
+      user_role: form.user_role,
+      has_real_estate: form.has_real_estate !== false,
+      has_will: form.has_will,
+      debt_concern: form.debt_concern,
+    });
     router.push(`/dashboard?case=${data.id}`);
   }
 
@@ -155,7 +163,7 @@ export default function OnboardingPage() {
               </p>
               <div className="space-y-3">
                 <button
-                  onClick={() => { setForm({ ...form, mode: "active" }); setStep(1); }}
+                  onClick={() => { posthog.capture("onboarding_mode_selected", { mode: "active" }); setForm({ ...form, mode: "active" }); setStep(1); }}
                   className="w-full rounded-xl border-2 border-slate-200 px-5 py-5 text-left transition-all hover:border-blue-400 hover:bg-blue-50"
                 >
                   <div className="mb-1 text-2xl">😔</div>
@@ -163,7 +171,7 @@ export default function OnboardingPage() {
                   <div className="mt-1 text-sm text-slate-500">今すぐ必要な手続きを期限付きで整理します</div>
                 </button>
                 <button
-                  onClick={() => { setForm({ ...form, mode: "preparation" }); setStep(1); }}
+                  onClick={() => { posthog.capture("onboarding_mode_selected", { mode: "preparation" }); setForm({ ...form, mode: "preparation" }); setStep(1); }}
                   className="w-full rounded-xl border-2 border-slate-200 px-5 py-5 text-left transition-all hover:border-green-400 hover:bg-green-50"
                 >
                   <div className="mb-1 text-2xl">📋</div>
