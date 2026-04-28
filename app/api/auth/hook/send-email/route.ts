@@ -5,7 +5,10 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const authHeader = req.headers.get("authorization");
+  // DEBUG: log all requests to diagnose if Supabase is calling this endpoint
+  console.log("[hook] called, auth:", authHeader?.slice(0, 30));
   if (!process.env.SUPABASE_HOOK_SECRET || authHeader !== `Bearer ${process.env.SUPABASE_HOOK_SECRET}`) {
+    console.log("[hook] auth mismatch, expected prefix:", process.env.SUPABASE_HOOK_SECRET?.slice(0, 20));
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
