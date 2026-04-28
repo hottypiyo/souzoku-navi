@@ -68,6 +68,7 @@ export default async function SpecialistsPage() {
   const { data: specialists } = await supabase
     .from("specialists")
     .select("*")
+    .eq("is_approved", true)
     .order("created_at", { ascending: false });
 
   return (
