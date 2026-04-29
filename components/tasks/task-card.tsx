@@ -31,6 +31,7 @@ export default function TaskCard({
   const [expanded, setExpanded] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(status);
   const [loading, setLoading] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [savingNote, setSavingNote] = useState(false);
   const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,6 +60,10 @@ export default function TaskCard({
     });
     setCurrentStatus(newStatus);
     setLoading(false);
+    if (newStatus === "completed") {
+      setJustCompleted(true);
+      setTimeout(() => setJustCompleted(false), 2500);
+    }
     router.refresh();
   }
 
@@ -162,6 +167,15 @@ export default function TaskCard({
           </button>
         </div>
       </div>
+
+      {justCompleted && (
+        <div className="animate-fade-in-down flex items-center gap-2 border-t border-green-100 bg-green-50 px-4 py-2.5 text-sm text-green-700">
+          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          お疲れさまでした。1件完了です。
+        </div>
+      )}
 
       {expanded && (
         <div className="border-t border-slate-100 px-4 pb-4 pt-3 space-y-4">

@@ -267,7 +267,7 @@ export default function OnboardingPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  死亡日 <span className="text-red-500">*</span>
+                  お亡くなりになった日 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"

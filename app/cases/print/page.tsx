@@ -70,7 +70,7 @@ export default async function PrintPage({
 
         <h1>{caseData.deceased_name ? `${caseData.deceased_name}さんの相続手続きリスト` : "相続手続きリスト"}</h1>
         <p style={{ fontSize: "0.85rem", color: "#64748b" }}>
-          死亡日：{caseData.death_date ?? "未設定"}　出力日：{new Date().toLocaleDateString("ja-JP")}　進捗：{completed}/{total} 完了（{pct}%）
+          ご逝去日：{caseData.death_date ?? "未設定"}　出力日：{new Date().toLocaleDateString("ja-JP")}　進捗：{completed}/{total} 完了（{pct}%）
         </p>
 
         {phases.map((phase) => {
