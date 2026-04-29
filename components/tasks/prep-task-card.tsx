@@ -114,6 +114,15 @@ export default function PrepTaskCard({
                 </ul>
               </div>
             )}
+            {task.actionLabel && task.actionPath && (
+              <a
+                href={`${task.actionPath}?case=${caseId}`}
+                className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                <span>{task.actionLabel}</span>
+                <span className="text-blue-400">→</span>
+              </a>
+            )}
             {task.needsProfessional && task.professionalType && (
               <div className="rounded-lg bg-blue-50 p-3">
                 <p className="text-sm text-blue-700">

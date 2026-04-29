@@ -152,7 +152,7 @@ export default async function DashboardPage({
               {isPremium && isOwner && (
                 <>
                   <a href="/specialists" className="text-xs text-blue-600 hover:underline">専門家を探す</a>
-                  <a href={`/assets?case=${caseId}`} className="text-xs text-slate-400 hover:text-slate-600">財産一覧表</a>
+                  <a href={`/assets?case=${caseId}`} className="text-xs text-blue-600 hover:underline font-medium">財産一覧表</a>
                   <a href="/settings/family" className="text-xs text-slate-400 hover:text-slate-600">家族を招待</a>
                   <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
                 </>
@@ -181,6 +181,19 @@ export default async function DashboardPage({
           </div>
 
           {!isPremium && <UpgradeBanner className="mb-6" />}
+
+          {isPremium && isOwner && (
+            <a
+              href={`/assets?case=${caseId}`}
+              className="mb-6 flex items-center justify-between rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 hover:bg-blue-100 transition-colors"
+            >
+              <div>
+                <p className="text-sm font-semibold text-blue-800">財産一覧表を作成する</p>
+                <p className="mt-0.5 text-xs text-blue-600">不動産・預貯金・保険・株式などを種別ごとに記録。相続手続きが始まったときに大きく役立ちます。</p>
+              </div>
+              <span className="ml-4 shrink-0 text-blue-400 text-lg">→</span>
+            </a>
+          )}
 
           {phases.map((phase) => {
             const phaseTasks = prepTasks.filter((t) => t.phase === phase);
@@ -273,7 +286,7 @@ export default async function DashboardPage({
                 <a href="/specialists" className="text-xs text-blue-600 hover:underline">専門家を探す</a>
                 {isOwner && (
                   <>
-                    <a href={`/assets?case=${caseId}`} className="text-xs text-slate-400 hover:text-slate-600">財産一覧表</a>
+                    <a href={`/assets?case=${caseId}`} className="text-xs text-blue-600 hover:underline font-medium">財産一覧表</a>
                     <a href={`/cases/print?case=${caseId}`} target="_blank" className="text-xs text-slate-400 hover:text-slate-600">印刷</a>
                     <a href="/settings/family" className="text-xs text-slate-400 hover:text-slate-600">家族を招待</a>
                     <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>

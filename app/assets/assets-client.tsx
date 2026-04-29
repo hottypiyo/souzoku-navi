@@ -551,9 +551,25 @@ export default function AssetsClient({
             )}
 
             {assets.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
-                <p className="text-sm text-slate-400">
-                  まだ財産が登録されていません。「財産を追加する」から登録してください。
+              <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                <p className="text-sm font-medium text-slate-700 mb-3">登録できる財産の種類</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
+                  {[
+                    { label: "不動産", desc: "土地・建物・マンション" },
+                    { label: "預貯金", desc: "銀行・信用金庫・ゆうちょ" },
+                    { label: "有価証券・株式", desc: "証券会社の口座・投資信託" },
+                    { label: "生命保険", desc: "証券番号・受取人も記録" },
+                    { label: "年金・退職金", desc: "国民年金・厚生年金など" },
+                    { label: "その他", desc: "骨董品・ゴルフ会員権など" },
+                  ].map(({ label, desc }) => (
+                    <div key={label} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+                      <p className="text-xs font-medium text-slate-700">{label}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-400 text-center">
+                  上の「財産を追加する」から登録してください
                 </p>
               </div>
             ) : (

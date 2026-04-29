@@ -34,6 +34,8 @@ export interface PrepTaskDefinition {
   needsProfessional: boolean;
   professionalType?: string;
   condition?: (c: CaseRow) => boolean;
+  actionLabel?: string;
+  actionPath?: string;
 }
 
 export const TASK_DEFINITIONS: TaskDefinition[] = [
@@ -479,10 +481,12 @@ export const PREP_TASK_DEFINITIONS: PrepTaskDefinition[] = [
     urgency: "high",
     tips: [
       "通帳・保険証券・固定資産税の通知書がどこにあるか確認する",
-      "「財産目録」としてExcelやノートにまとめておくと後が楽",
+      "財産一覧表に種別・金融機関名・口座番号などを記録しておくと、いざ相続手続きになったときに格段に楽になります",
       "借金・連帯保証の有無も必ず確認（相続放棄の判断に直結）",
     ],
     needsProfessional: false,
+    actionLabel: "財産一覧表を作成する",
+    actionPath: "/assets",
   },
   {
     id: "PREP1-02",
