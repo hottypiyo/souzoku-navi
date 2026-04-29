@@ -13,11 +13,15 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   const service = await createServiceClient();
   const { data: member } = await service
     .from("case_members")
-    .select("id, case_id, invited_email, joined_at")
+    .select("id, case_id, invited_email, joined_at, invite_expires_at")
     .eq("invite_token", token)
     .single();
 
-  if (!member) {
+  const isExpired =
+    member?.invite_expires_at != null &&
+    new Date(member.invite_expires_at) < new Date();
+
+  if (!member || isExpired) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="max-w-sm w-full rounded-2xl bg-white p-8 text-center shadow-sm">

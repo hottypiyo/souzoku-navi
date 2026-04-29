@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isPremiumProfile } from "@/lib/auth/premium";
 import {
   getApplicableTasks,
   getApplicablePrepTasks,
@@ -33,10 +34,7 @@ export default async function DashboardPage({
     .eq("id", user.id)
     .single();
 
-  const isPremium =
-    profile?.plan === "premium" &&
-    (profile.premium_expires_at === null ||
-      new Date(profile.premium_expires_at) > new Date());
+  const isPremium = isPremiumProfile(profile);
 
   // 自分の案件 + 招待で参加した案件を取得
   const [{ data: ownCases }, { data: memberRows }] = await Promise.all([

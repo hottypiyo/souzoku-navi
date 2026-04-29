@@ -65,6 +65,7 @@ export type Database = {
         Row: {
           case_id: string
           id: string
+          invite_expires_at: string | null
           invite_token: string | null
           invited_at: string | null
           invited_email: string
@@ -75,6 +76,7 @@ export type Database = {
         Insert: {
           case_id: string
           id?: string
+          invite_expires_at?: string | null
           invite_token?: string | null
           invited_at?: string | null
           invited_email: string
@@ -85,6 +87,7 @@ export type Database = {
         Update: {
           case_id?: string
           id?: string
+          invite_expires_at?: string | null
           invite_token?: string | null
           invited_at?: string | null
           invited_email?: string

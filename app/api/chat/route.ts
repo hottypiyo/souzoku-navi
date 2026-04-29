@@ -1,6 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { convertToModelMessages, streamText } from "ai";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const google = createGoogleGenerativeAI();
 
@@ -45,6 +46,11 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // 1ユーザーあたり1分間に20回まで（サーバーレスではベストエフォート）
+  if (!checkRateLimit(`chat:${user.id}`, { windowMs: 60 * 1000, max: 20 })) {
+    return new Response("Too Many Requests", { status: 429 });
   }
 
   const { messages, caseContext } = await req.json();

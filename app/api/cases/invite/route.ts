@@ -15,9 +15,12 @@ export async function POST(request: Request) {
   if (!caseData) return NextResponse.json({ error: "case not found" }, { status: 404 });
 
   const service = await createServiceClient();
+  const inviteExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const { data: member, error } = await service.from("case_members").insert({
     case_id: caseId,
     invited_email: email,
+    invited_at: new Date().toISOString(),
+    invite_expires_at: inviteExpiresAt,
   }).select("invite_token").single();
 
   if (error) {
@@ -33,7 +36,7 @@ export async function POST(request: Request) {
     subject: `【相続手続きナビ】${caseName}への招待`,
     html: `
       <p>相続手続きナビで、${caseName}の共有メンバーに招待されました。</p>
-      <p>以下のリンクから参加してください（有効期限はありません）。</p>
+      <p>以下のリンクから参加してください（有効期限：30日間）。</p>
       <p><a href="${inviteUrl}">${inviteUrl}</a></p>
       <p>このメールに心当たりがない場合は無視してください。</p>
     `,
