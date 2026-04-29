@@ -19,6 +19,7 @@ export type Database = {
           asset_type: string
           case_id: string
           created_at: string | null
+          details: Json | null
           estimated_value: number | null
           id: string
           institution: string | null
@@ -30,6 +31,7 @@ export type Database = {
           asset_type: string
           case_id: string
           created_at?: string | null
+          details?: Json | null
           estimated_value?: number | null
           id?: string
           institution?: string | null
@@ -41,6 +43,7 @@ export type Database = {
           asset_type?: string
           case_id?: string
           created_at?: string | null
+          details?: Json | null
           estimated_value?: number | null
           id?: string
           institution?: string | null

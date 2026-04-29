@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import AssetsClient from "./assets-client";
+import AssetsClient, { type Asset } from "./assets-client";
 
 export const metadata = { title: "財産一覧表" };
 
@@ -64,7 +64,7 @@ export default async function AssetsPage({
       isOwner={isOwner}
       cases={allCases}
       selectedCaseId={caseId}
-      initialAssets={assets ?? []}
+      initialAssets={(assets ?? []) as unknown as Asset[]}
     />
   );
 }
