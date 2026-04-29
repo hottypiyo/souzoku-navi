@@ -9,6 +9,8 @@ const TYPE_LABELS: Record<SpecialistType, string> = {
   judicial_scrivener: "司法書士",
   administrative_scrivener: "行政書士",
   lawyer: "弁護士",
+  social_insurance_labor_consultant: "社会保険労務士",
+  other: "その他",
 };
 
 const TYPE_COLORS: Record<SpecialistType, string> = {
@@ -16,6 +18,8 @@ const TYPE_COLORS: Record<SpecialistType, string> = {
   judicial_scrivener: "bg-green-50 text-green-700",
   administrative_scrivener: "bg-purple-50 text-purple-700",
   lawyer: "bg-orange-50 text-orange-700",
+  social_insurance_labor_consultant: "bg-yellow-50 text-yellow-700",
+  other: "bg-slate-50 text-slate-700",
 };
 
 const EXTERNAL_DIRECTORIES = [

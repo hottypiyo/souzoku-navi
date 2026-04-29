@@ -152,6 +152,7 @@ export default async function DashboardPage({
               {isPremium && isOwner && (
                 <>
                   <a href="/specialists" className="text-xs text-blue-600 hover:underline">専門家を探す</a>
+                  <a href={`/assets?case=${caseId}`} className="text-xs text-slate-400 hover:text-slate-600">財産一覧表</a>
                   <a href="/settings/family" className="text-xs text-slate-400 hover:text-slate-600">家族を招待</a>
                   <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
                 </>
@@ -272,6 +273,7 @@ export default async function DashboardPage({
                 <a href="/specialists" className="text-xs text-blue-600 hover:underline">専門家を探す</a>
                 {isOwner && (
                   <>
+                    <a href={`/assets?case=${caseId}`} className="text-xs text-slate-400 hover:text-slate-600">財産一覧表</a>
                     <a href={`/cases/print?case=${caseId}`} target="_blank" className="text-xs text-slate-400 hover:text-slate-600">印刷</a>
                     <a href="/settings/family" className="text-xs text-slate-400 hover:text-slate-600">家族を招待</a>
                     <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
