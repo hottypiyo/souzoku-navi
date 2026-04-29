@@ -153,6 +153,7 @@ export default async function DashboardPage({
                   <a href={`/assets?case=${caseId}`} className="text-xs text-blue-600 hover:underline font-medium">財産一覧表</a>
                   <a href="/settings/family" className="text-xs text-slate-400 hover:text-slate-600">家族を招待</a>
                   <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
+                  <a href="/settings/case" className="text-xs text-slate-400 hover:text-slate-600">案件情報を編集</a>
                 </>
               )}
             </div>
@@ -288,6 +289,7 @@ export default async function DashboardPage({
                     <a href={`/cases/print?case=${caseId}`} target="_blank" className="text-xs text-slate-400 hover:text-slate-600">印刷</a>
                     <a href="/settings/family" className="text-xs text-slate-400 hover:text-slate-600">家族を招待</a>
                     <a href="/settings" className="text-xs text-slate-400 hover:text-slate-600">通知設定</a>
+                    <a href="/settings/case" className="text-xs text-slate-400 hover:text-slate-600">案件情報を編集</a>
                   </>
                 )}
               </>

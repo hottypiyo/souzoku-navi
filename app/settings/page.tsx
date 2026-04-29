@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isPremiumProfile } from "@/lib/auth/premium";
 import NotificationSettings from "./notification-settings";
 
 export const metadata = { title: "通知設定" };
@@ -19,10 +20,7 @@ export default async function SettingsPage({
     .eq("id", user.id)
     .single();
 
-  const isPremium =
-    profile?.plan === "premium" &&
-    (profile.premium_expires_at === null ||
-      new Date(profile.premium_expires_at) > new Date());
+  const isPremium = isPremiumProfile(profile);
 
   const params = await searchParams;
   const lineStatus = params.line;

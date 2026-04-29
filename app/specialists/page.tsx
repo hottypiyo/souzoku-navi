@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isPremiumProfile } from "@/lib/auth/premium";
 import type { SpecialistType } from "@/lib/supabase/types";
 
 export const metadata = { title: "専門家を探す" };
@@ -60,10 +61,7 @@ export default async function SpecialistsPage() {
     .eq("id", user.id)
     .single();
 
-  const isPremium =
-    profile?.plan === "premium" &&
-    (profile.premium_expires_at === null ||
-      new Date(profile.premium_expires_at) > new Date());
+  const isPremium = isPremiumProfile(profile);
 
   if (!isPremium) {
     redirect("/upgrade");
