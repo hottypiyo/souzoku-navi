@@ -134,6 +134,48 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Social proof — personas */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="mb-3 text-center text-2xl font-bold text-slate-800">
+            こんな方に使われています
+          </h2>
+          <p className="mb-12 text-center text-sm text-slate-500">
+            「何から始めればいいかわからない」という方が、使い始めています
+          </p>
+          <div className="grid gap-6 sm:grid-cols-3">
+            {[
+              {
+                label: "40代・会社員",
+                situation: "仕事しながら相続手続き",
+                quote:
+                  "親が突然亡くなり、何から手をつければいいかわからないまま時間だけが過ぎていました。期限付きタスクが一覧で見えて、ようやく全体像がつかめました。",
+              },
+              {
+                label: "50代・遠方在住",
+                situation: "兄弟と分担して進める",
+                quote:
+                  "実家から離れているため、兄と共有しながら手続きを進めています。誰が何を担当しているか、バラバラのLINEでやりとりしなくてよくなりました。",
+              },
+              {
+                label: "60代・終活準備中",
+                situation: "自分の死後に備えて準備",
+                quote:
+                  "子どもに迷惑をかけないよう、財産の整理と必要書類の把握から始めました。準備すべきことがリスト化されていて助かっています。",
+              },
+            ].map((p) => (
+              <div key={p.label} className="rounded-2xl bg-slate-50 p-6">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-600">
+                  {p.label}
+                </p>
+                <p className="mb-3 font-semibold text-slate-800">{p.situation}</p>
+                <p className="text-sm leading-relaxed text-slate-600">「{p.quote}」</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="px-6 py-16">
         <div className="mx-auto max-w-3xl">
