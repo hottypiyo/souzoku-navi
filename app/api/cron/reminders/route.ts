@@ -45,7 +45,7 @@ export async function GET(req: Request) {
       .from("cases")
       .select("*")
       .eq("user_id", profile.id)
-      .eq("mode", "inheritance")
+      .eq("mode", "active")
       .not("death_date", "is", null);
 
     if (!cases || cases.length === 0) continue;
