@@ -10,7 +10,7 @@ const rows = [
   { label: "代表者", value: "堀田昂佑" },
   { label: "所在地", value: "〒110-0005　東京都台東区上野1丁目17番6号　広小路ビル8F-B" },
   { label: "電話番号", value: "080-4026-5525（受付時間：平日10:00〜18:00）" },
-  { label: "メールアドレス", value: "trombonist.kosuke@gmail.com" },
+  { label: "メールアドレス", value: "info@souzoku-navi.app" },
   { label: "サービス名", value: "相続手続きナビ プレミアムプラン" },
   {
     label: "販売価格",

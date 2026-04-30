@@ -52,7 +52,7 @@ const sections = [
   },
   {
     title: "12. お問い合わせ",
-    body: "本規約に関するお問い合わせは、trombonist.kosuke@gmail.com までご連絡ください。",
+    body: "本規約に関するお問い合わせは、info@souzoku-navi.app までご連絡ください。",
   },
 ];
 

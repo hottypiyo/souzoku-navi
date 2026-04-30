@@ -122,7 +122,7 @@ export default function PrivacyPage() {
           <div className="rounded-xl bg-slate-100 px-5 py-4 text-sm text-slate-700 space-y-1">
             <p>堀田昂佑</p>
             <p>〒110-0005　東京都台東区上野1丁目17番6号　広小路ビル8F-B</p>
-            <p>メール：trombonist.kosuke@gmail.com</p>
+            <p>メール：info@souzoku-navi.app</p>
           </div>
         </section>
 
